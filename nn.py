@@ -32,7 +32,12 @@ seed_list = glob.glob('./seeds/*')
 new_seeds = glob.glob('./seeds/id_*')
 SPLIT_RATIO = len(seed_list)
 # get binary argv
-argvv = sys.argv[1:]
+if sys.argv[1] == 'QEMU':
+    argvv = sys.argv[2:]
+    QEMU = True
+else:
+    argvv = sys.argv[1:]
+    QEMU = False
 
 # process training data from afl raw data
 
@@ -78,9 +83,9 @@ def process_data():
         try:
             # append "-o tmp_file" to strip's arguments to avoid tampering tested binary.
             if argvv[0] == './strip':
-                out = call(['./afl-showmap', '-q', '-e', '-o', '/dev/stdout', '-m', '512', '-t', '500'] + argvv + [f] + ['-o', 'tmp_file'])
+                out = call(['./afl-showmap'] + (['-Q'] if QEMU else []) + ['-q', '-e', '-o', '/dev/stdout', '-m', '512', '-t', '500'] + argvv + [f] + ['-o', 'tmp_file'])
             else:
-                out = call(['./afl-showmap', '-q', '-e', '-o', '/dev/stdout', '-m', '512', '-t', '500'] + argvv + [f])
+                out = call(['./afl-showmap'] + (['-Q'] if QEMU else []) + ['-q', '-e', '-o', '/dev/stdout', '-m', '512', '-t', '500'] + argvv + [f])
         except subprocess.CalledProcessError:
             print("find a crash")
         for line in out.splitlines():
